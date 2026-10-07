@@ -8,6 +8,63 @@ case $- in
       *) return;;
 esac
 
+{{- $gadi := hasPrefix "gadi-" .chezmoi.hostname -}}
+{{ if $gadi -}}
+# .bashrc (Gadi)
+
+# Source global definitions (Required for modules)
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+if in_interactive_shell; then
+    prepend_path PATH ${HOME}/bin
+    prepend_path PATH ${HOME}/.local/bin
+
+    if in_login_shell; then
+        module load pbs
+    fi
+fi
+
+# if in_pbs_job; then
+#     module load openmpi/4.0.1
+# fi
+
+export SINGULARITY_CACHEDIR=/g/data/tb21/$USER/pkgs/singularity/cache
+export NXF_HOME="/g/data/tb21/$USER/pkgs/nextflow"
+export NXF_SINGULARITY_CACHEDIR=$SINGULARITY_CACHEDIR
+export NXF_CACHE_DIR="/g/data/tb21/$USER/pkgs/nextflow/cache"
+export PIXI_CACHE_DIR="/g/data/tb21/$USER/pkgs/pixi/cache"
+export RATTLER_CACHE_DIR="/g/data/tb21/$USER/pkgs/pixi/cache"
+module load use.own
+{{- else -}}
+# ~/.bashrc: executed by bash(1) for non-login shells.
+
+export PATH="$HOME/.pixi/bin:$PATH"
+
+alias sshj='ssh -J sarahhp@login.uio.no'
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('$HOME/pkgs/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "$HOME/pkgs/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "$HOME/pkgs/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="$HOME/pkgs/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+export PATH="$HOME/.local/bin:$PATH"
+export ANTHROPIC_API_KEY=$(pass anthropic/api-key)
+{{- end }}
+
+# common to both
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -117,25 +174,3 @@ if ! shopt -oq posix; then
 fi
 
 
-alias sshj='ssh -J sarahhp@login.uio.no'
-
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/sarahhp/pkgs/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/sarahhp/pkgs/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/sarahhp/pkgs/miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/sarahhp/pkgs/miniconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
-export PATH="$HOME/.local/bin:$PATH"
-export ANTHROPIC_API_KEY=$(pass anthropic/api-key)
-
-export PATH="/home/sarahhp/.pixi/bin:$PATH"
